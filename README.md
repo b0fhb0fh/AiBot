@@ -1,15 +1,17 @@
 # MyAiBot
 проба пера - телеграм-бот, делающий запросы к AI
 
-https://ollama.com/download
-
+1. скачать и проинсталлировать ollama отсюда https://ollama.com/download
+2. выбрать модель для использования
 ollama pull <model>
-
+рекомендую llama3.2 или phi4
+3. Проинсталлировать библиотеки
 pip install -r requirements.txt
-
-необходимо запустить
+4. в BotFather запустить /newbot и получить для него token
+указать этот токен в тексте бота
+5.необходимо запустить ollama
 ollama run <model> 
-далее
+6. запустить бот
 nohup python3 ai-bot.py &
 или
 screen -d -m python3 ai-bot.py
