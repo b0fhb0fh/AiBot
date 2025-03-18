@@ -1,0 +1,5 @@
+{
+    "TELEGRAM_BOT_TOKEN": "YOUR_BOT_TOKEN_HERE",
+    "OLLAMA_URL": "http://localhost:11434/api/generate",
+    "OLLAMA_MODEL": "llama3.2"
+}
