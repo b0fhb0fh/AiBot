@@ -1,5 +1,13 @@
 {
-    "TELEGRAM_BOT_TOKEN": "YOUR_BOT_TOKEN_HERE",
-    "OLLAMA_URL": "http://localhost:11434/api/generate",
-    "OLLAMA_MODEL": "llama3.2"
+    "telegram_token": "YOUR_BOT_TOKEN_HERE",
+    "ai_config": {
+        "api_url": "http://localhost:11434/api/generate",
+        "model": "llama3.2",
+        "api_key": "your_api_key_optional",
+        "timeout": 30,
+        "headers": {
+            "Content-Type": "application/json",
+            "X-Custom-Header": "value"
+        }
+    }
 }
