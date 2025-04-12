@@ -1,32 +1,96 @@
-# MyAiBot
-проба пера - телеграм-бот, делающий запросы к AI
+```markdown
+# Telegram AI Chat Bot
 
-1. скачать и проинсталлировать ollama отсюда https://ollama.com/download
+Бот для Telegram, который отвечает на вопросы пользователей, используя внешний ИИ (например, Ollama, OpenAI или другие совместимые API).
 
-2. выбрать модель для использования
+## Особенности
 
-ollama pull "model"
+- Поддержка различных моделей ИИ через API
+- Конфигурация через файл `config.json`
+- Автоматический перезапуск при ошибках соединения
+- Ограничение длины сообщений для соответствия лимитам Telegram
 
-рекомендую llama3.2 или phi4
+## Требования
 
-указать модель в config.json
+- Python 3.7+
+- Установленные зависимости из `requirements.txt`
 
-4. Проинсталлировать библиотеки
+## Установка
 
-pip install -r requirements.txt
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/yourusername/telegram-ai-bot.git
+   cd telegram-ai-bot
+   ```
 
-5. в BotFather запустить /newbot и получить для него token
+2. Установите зависимости:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-указать этот токен в config.json
+3. Создайте файл конфигурации `config.json` (см. пример ниже)
 
-6. необходимо запустить ollama
+## Конфигурация
 
-ollama run <model> 
+Создайте файл `config.json` в корневой директории проекта:
 
-7. запустить бот
+```json
+{
+    "telegram_token": "YOUR_TELEGRAM_BOT_TOKEN",
+    "ai_config": {
+        "api_url": "http://localhost:11434/api/generate",
+        "model": "llama3.2",
+        "api_key": "your_api_key_optional",
+        "timeout": 30,
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
+}
+```
 
-nohup python3 ai-bot.py &
+### Параметры конфигурации
 
-или
+- `telegram_token` - обязательный, токен вашего Telegram бота от @BotFather
+- `ai_config` - настройки для подключения к API ИИ:
+  - `api_url` - обязательный, URL endpoint API
+  - `model` - модель ИИ по умолчанию
+  - `api_key` - опциональный API ключ (если требуется)
+  - `timeout` - таймаут запроса в секундах (по умолчанию 30)
+  - `headers` - дополнительные заголовки HTTP запроса
 
-screen -d -m python3 ai-bot.py
+## Запуск бота
+
+```bash
+python3 bot.py
+```
+
+## Использование
+
+1. Начните чат с ботом в Telegram
+2. Отправьте команду `/start` или `/help` для получения приветственного сообщения
+3. Отправьте любой текст - бот ответит с помощью подключенного ИИ
+
+## Поддерживаемые API
+
+Бот может работать с любым API ИИ, которое поддерживает:
+- POST запросы
+- JSON формат запроса/ответа
+- Аналогичную Ollama структуру запроса
+
+Примеры совместимых сервисов:
+- Ollama (локально или на сервере)
+- OpenAI API
+- Anthropic Claude API
+- Google Gemini API (с соответствующей настройкой)
+
+## Доработка
+
+Чтобы адаптировать бота под конкретный API:
+1. Измените структуру запроса в методе `ask_ai` класса `AIChatBot`
+2. Настройте соответствующие параметры в `config.json`
+
+## Лицензия
+
+MIT License
+```
