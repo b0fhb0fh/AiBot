@@ -18,8 +18,8 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com/yourusername/telegram-ai-bot.git
-   cd telegram-ai-bot
+   git clone https://github.com/b0fhb0fh/AiBot.git 
+   cd AiBot
    ```
 
 2. Установите зависимости:
