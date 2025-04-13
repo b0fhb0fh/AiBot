@@ -18,7 +18,7 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com/b0fhb0fh/AiBot.git
+   git clone https://github.com/b0fhb0fh/AiBot.git 
    cd AiBot
    ```
 
