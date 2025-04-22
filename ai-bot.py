@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 
 import telebot
+from openai import OpenAI, APIConnectionError, APITimeoutError
 import requests
 import os
 import sys
 import json
-from typing import Optional, Dict, Any
+from typing import Dict, Any, Optional
 from pathlib import Path
 
 class AIChatBot:
@@ -19,6 +20,15 @@ class AIChatBot:
         self.bot = telebot.TeleBot(self.config['telegram_token'])
         self.ai_config = self.config.get('ai_config', {})
         
+        # Инициализация клиента OpenAI, если указан ключ
+        self.openai_client = None
+        if self.ai_config.get('api_key'):
+            self.openai_client = OpenAI(
+                base_url=self.ai_config.get('base_url', 'https://api.proxyapi.ru/deepseek'),
+                api_key=self.ai_config['api_key'],
+                timeout=self.ai_config.get('timeout', 30)
+            )
+        
         # Регистрация обработчиков
         self.bot.message_handler(commands=['start', 'help'])(self.send_welcome)
         self.bot.message_handler(func=lambda message: True)(self.handle_message)
@@ -30,13 +40,16 @@ class AIChatBot:
         try:
             with open(self.CONFIG_FILE, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                
+            
             # Проверка обязательных параметров
             if not config.get('telegram_token'):
                 raise ValueError("Не указан telegram_token в конфигурации")
-            if not config.get('ai_config', {}).get('api_url'):
-                raise ValueError("Не указан api_url в конфигурации ИИ")
-                
+            
+            # Проверка конфигурации ИИ
+            ai_config = config.get('ai_config', {})
+            if not ai_config.get('api_key') and not ai_config.get('ollama_api_url'):
+                raise ValueError("Должен быть указан либо api_key для OpenAI, либо ollama_api_url для локального Ollama")
+            
             return config
         except FileNotFoundError:
             raise FileNotFoundError(f"Конфигурационный файл {self.CONFIG_FILE} не найден")
@@ -45,30 +58,60 @@ class AIChatBot:
 
     def ask_ai(self, prompt: str, model: Optional[str] = None) -> str:
         """
-        Отправляет запрос к внешнему ИИ и возвращает ответ.
+        Отправляет запрос к ИИ (использует OpenAI, если доступен, иначе Ollama)
         """
+        if self.openai_client:
+            return self._ask_openai(prompt, model)
+        else:
+            return self._ask_ollama(prompt, model)
+
+    def _ask_openai(self, prompt: str, model: Optional[str] = None) -> str:
+        """
+        Отправляет запрос через OpenAI API
+        """
+        try:
+            chat_completion = self.openai_client.chat.completions.create(
+                model=model or self.ai_config.get('model', 'deepseek-chat'),
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            if not chat_completion.choices:
+                return "ИИ не вернул ответа"
+            
+            response_message = chat_completion.choices[0].message
+            return response_message.content.strip() if response_message.content else "Пустой ответ от ИИ"
+        
+        except Exception as e:
+            return f"Ошибка запроса к OpenAI API: {str(e)}"
+
+    def _ask_ollama(self, prompt: str, model: Optional[str] = None) -> str:
+        """
+        Отправляет запрос к локальному Ollama API
+        """
+        api_url = self.ai_config.get('ollama_api_url', 'http://localhost:11434/api/generate')
         payload = {
             "prompt": prompt,
-            "model": model or self.ai_config.get('model', 'llama3.2'),
+            "model": model or self.ai_config.get('ollama_model', 'llama3'),
             "stream": False
         }
-        
-        headers = self.ai_config.get('headers', {'Content-Type': 'application/json'})
-        if 'api_key' in self.ai_config:
-            headers['Authorization'] = f"Bearer {self.ai_config['api_key']}"
-        
+    
+        headers = {
+            'Content-Type': 'application/json',
+            **self.ai_config.get('headers', {})  # Дополнительные заголовки из конфига
+        }
+    
         try:
             response = requests.post(
-                self.ai_config['api_url'],
+                api_url,
                 json=payload,
                 headers=headers,
                 timeout=self.ai_config.get('timeout', 30)
             )
             response.raise_for_status()
             return response.json().get("response", "Не получилось извлечь ответ из JSON")
-        except requests.exceptions.RequestException as e:
-            return f"Ошибка запроса к ИИ: {str(e)}"
-
+        except Exception as e:
+            return f"Ошибка запроса к Ollama API: {str(e)}"
+    
     def send_welcome(self, message):
         """Обработчик команд /start и /help"""
         self.bot.reply_to(message, 
@@ -85,7 +128,8 @@ class AIChatBot:
         while True:
             try:
                 self.bot.infinity_polling(timeout=10, long_polling_timeout=5)
-            except (ConnectionError, requests.exceptions.ReadTimeout) as e:
+            except (APIConnectionError, APITimeoutError, ConnectionError) as e:
+                print(f"Ошибка подключения: {e}, перезапуск...")
                 sys.stdout.flush()
                 os.execv(sys.argv[0], sys.argv)
 

@@ -1,13 +1,9 @@
 {
     "telegram_token": "YOUR_BOT_TOKEN_HERE",
     "ai_config": {
-        "api_url": "http://localhost:11434/api/generate",
-        "model": "llama3.2",
-        "api_key": "your_api_key_optional",
-        "timeout": 30,
-        "headers": {
-            "Content-Type": "application/json",
-            "X-Custom-Header": "value"
-        }
+        "api_key": "YOUR_API_KEY",
+        "base_url": "https://api.proxyapi.ru/openai/v1",
+        "model": "gpt-4o-search-preview",
+        "timeout": 60
     }
 }
