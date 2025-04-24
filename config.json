@@ -1,9 +1,14 @@
 {
     "telegram_token": "YOUR_BOT_TOKEN_HERE",
+    "ai_name": "openai",
     "ai_config": {
         "api_key": "YOUR_API_KEY",
         "base_url": "https://api.proxyapi.ru/openai/v1",
         "model": "gpt-4o-search-preview",
-        "timeout": 60
+        "timeout": 60,
+        "headers": {
+            "Content-Type": "application/json",
+            "X-Custom-Header": "value"
+        }
     }
 }
